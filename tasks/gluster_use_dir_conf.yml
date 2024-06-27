@@ -1,0 +1,51 @@
+---
+- hosts: webservers
+  remote_user: root
+  gather_facts: no
+  tasks:
+    - name: Create wp directory
+      file:
+        path: /data/wp
+        state: directory
+        owner: apache
+        group: apache
+        recurse: yes
+
+    - name: Create image directory
+      file:
+        path: /data/image
+        state: directory
+        owner: apache
+        group: apache
+        recurse: yes
+
+    - name: Install glusterfs client
+      yum:
+        name: glusterfs-client
+        state: present
+
+    # - name: Configure hosts file
+    #   lineinfile:
+    #     path: /etc/hosts
+    #     line: "{{ item }}"
+    #     state: present
+    #   loop:
+    #     - '10.0.0.21 Gluster-01'
+    #     - '10.0.0.22 Gluster-02'
+    #     - '10.0.0.23 Gluster-03'
+
+    - name: Mount glusterfs to wp
+      mount:
+        name: /data/wp
+        src: 10.0.0.20:/wp
+        fstype: glusterfs
+        opts: defaults,_netdev
+        state: mounted
+
+    - name: Mount glusterfs to image
+      mount:
+        name: /data/image
+        src: 10.0.0.20:/image
+        fstype: glusterfs
+        opts: defaults,_netdev
+        state: mounted

@@ -1,0 +1,24 @@
+---
+- hosts: webservers
+  remote_user: root
+  gather_facts: no
+
+  tasks:
+    - name: Upload configuration
+      copy:
+        src: /root/myrole/files/vhost.conf
+        dest: /etc/httpd/conf.d/vhost.conf
+
+    - name: Set 81 and 82
+      lineinfile:
+        path: /etc/httpd/conf/httpd.conf
+        insertafter: Listen 80
+        line: "{{ item }}"
+      loop:
+        - Listen 81
+        - Listen 82
+
+    - name: Restart httpd
+      service:
+        name: httpd
+        state: restarted

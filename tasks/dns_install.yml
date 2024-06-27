@@ -1,0 +1,17 @@
+---
+- name: Configure DNS Server
+  hosts: 192.168.169.138
+  remote_user: root
+  gather_facts: no
+
+  tasks:
+  - name: Install BIND DNS Server
+    yum:
+      name: bind
+      state: present
+
+  - name: Enable and Start BIND DNS Server Service
+    service:
+      name: named
+      state: started
+      enabled: yes

@@ -1,0 +1,29 @@
+---
+- name: Set timezone to Asia/Shanghai and configure NTP on openEuler
+  hosts: openeuler
+  become: true
+
+  tasks:
+    - name: Set the system timezone to Asia/Shanghai
+      command: timedatectl set-timezone Asia/Shanghai
+
+    - name: Ensure chrony is installed for NTP synchronization
+      package:
+        name: chrony
+        state: present
+
+    - name: Configure chrony to use reliable NTP servers
+      lineinfile:
+        path: /etc/chrony.conf
+        line: "pool ntp.aliyun.com iburst"
+        state: present
+
+    - name: Restart chrony service to apply changes
+      service:
+        name: chronyd
+        state: restarted
+        enabled: yes
+
+    - name: Ensure the system clock is synchronized immediately
+      command: chronyc makestep
+...

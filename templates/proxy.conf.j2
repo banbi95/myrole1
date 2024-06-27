@@ -1,0 +1,26 @@
+upstream wp {
+# server blog.test.com;
+server 10.0.0.15:81;
+server 10.0.0.16:81;
+}
+upstream image { 
+    server 10.0.0.15:82;
+    server 10.0.0.16:82;
+}
+
+server {
+listen 80;
+server_name {{ip}};   # ?
+location /blog/ {
+proxy_pass http://wp/;
+proxy_set_header Host	$host;
+proxy_set_header X-Real-IP	$remote_addr; 
+proxy_set_header X-Forwarded-For	$remote_addr; 
+proxy_set_header X-Forwarded-Proto  $scheme;
+proxy_set_header X-Forwarded-Host  $host;
+proxy_set_header X-Forwarded-Port  $server_port;
+
+}
+location /image/ { 
+    proxy_pass http://image/;
+}

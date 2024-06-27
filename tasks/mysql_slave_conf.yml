@@ -1,0 +1,41 @@
+---
+- name: configure slave mysql node
+  hosts: 10.0.0.16
+  remote_user: root
+  gather_facts: no
+  vars:
+    mysql_pass: 12345678   
+    MASTER_LOG_FILE: binlog.000003  #  get from "show master staus" on master node 
+    MASTER_LOG_POS: 157            #  get from "show master staus"  on master node
+
+
+  tasks:
+    - name: Config slave 
+      lineinfile:
+        path: /etc/my.cnf
+        line: "{{ item }}"
+        insertafter: [mysqld]
+        state: present
+      with_items:
+        - server-id=2
+        - log-bin=/var/lib/mysql/binlog
+        - 'default_authentication_plugin=caching_sha2_password'
+        - 'log_timestamps=SYSTEM'
+        -  replicate-ignore-db = mysql 
+        -  replicate-ignore-db = information_schema
+        -  replicate-ignore-db = performance_schema
+      notify: restart_slave
+
+    - name: Choose master
+      tags: master
+      command: mysql -uroot -p"{{mysql_pass}}" -e "CHANGE MASTER TO MASTER_HOST='10.0.0.15',MASTER_PORT=3306,MASTER_USER='slave',MASTER_PASSWORD='12345678',MASTER_LOG_FILE='{{MASTER_LOG_FILE}}',MASTER_LOG_POS={{MASTER_LOG_POS}},get_master_public_key=1;"
+
+    - name: Start slave
+      tags: start
+      command: mysql -uroot -p"{{mysql_pass}}" -e "start slave;"
+
+  handlers:
+    - name: restart_slave
+      service:
+        name: mysqld
+        state: restarted

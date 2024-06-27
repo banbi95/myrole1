@@ -1,0 +1,22 @@
+! Configuration File for keepalived
+
+global_defs {
+  router_id {{ ansible_fqdn }}
+}
+
+vrrp_instance Nginx {
+  state {{ role }}
+  interface ens34
+  virtual_router_id 52
+  priority {{ priority }}
+  advert_int 1
+
+  authentication {
+    auth_type PASS
+    auth_pass 1111
+  }
+
+  virtual_ipaddress {
+    10.0.0.20/24
+  }
+}

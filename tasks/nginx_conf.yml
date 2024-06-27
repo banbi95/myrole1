@@ -1,0 +1,80 @@
+# ---
+# - name: config nginx
+#   hosts: nginx
+#   gather_facts: no
+#   remote_user: root
+#   tasks:
+#     - name: upload configure file
+#       template:
+#         src: /root/myrole/templates/proxy.conf.j2
+#         dest: /etc/nginx/conf.d/proxy.conf
+
+#     - name: reload nginx
+#       service:
+#         name: nginx
+#         state: reloaded
+# - name : config nginx1 gateway
+#   hosts: nginx1
+#   gather_facts: no
+#   tasks:
+#     - name:  Modify the IPv4 gateway
+#       community.network.nmcli:
+#         con-name: " ens36"
+#         ipv4.gateway: 10.0.0.11
+#         state: present
+
+#     - name: Bring the connection down
+#       community.network.nmcli:
+#         con-name: "ens36"
+#         state: absent
+
+#     - name: Bring the connection up
+#       community.network.nmcli:
+#         con-name: "ens36"
+#         state: present
+
+- name : config nginx1 gateway
+  gather_facts: no
+  hosts: nginx1
+  vars:
+   nic_name: ens36
+  tasks:
+    - name: Modify the IPv4 gateway
+      lineinfile:
+        path: /etc/sysconfig/network-scripts/ifcfg-{{nic_name}}
+        insertafter: IPADDR=10.0.0.13
+        line: GATEWAY=10.0.0.11
+        
+
+    - name: Bring the connection down
+      command: ifdown {{nic_name}}
+      ignore_errors: yes
+    
+
+    - name: Bring the connection up
+      command: ifup {{nic_name}}
+
+- name : config nginx2 gateway
+  gather_facts: no
+  hosts: nginx2
+  vars:
+   nic_name: ens34
+  tasks:
+    - name: Modify the IPv4 gateway
+      lineinfile:
+        path: /etc/sysconfig/network-scripts/ifcfg-{{nic_name}}
+        insertafter: IPADDR=10.0.0.14
+        line: GATEWAY=10.0.0.11
+        
+
+    - name: Bring the connection up
+      command: ifdown {{nic_name}}
+      ignore_errors: yes
+    
+
+    - name: Bring the connection down
+      command: ifup {{nic_name}}
+      
+
+  
+ 

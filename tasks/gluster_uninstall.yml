@@ -1,0 +1,33 @@
+---
+- name: Remove GlusterFS Completely
+  hosts: webservers,dbservers
+  gather_facts: no
+  become: yes
+
+  tasks:
+  - name: Stop glusterd service
+    systemd:
+      name: glusterd
+      state: stopped
+      enabled: no
+
+  - name: Uninstall GlusterFS packages
+    package:
+      name: glusterfs*
+      state: absent
+
+  - name: Remove GlusterFS configuration and log directories
+    file:
+      path: "{{ item }}"
+      state: absent
+    loop:
+      - /etc/glusterfs
+      - /var/lib/glusterd
+      - /var/log/glusterfs
+
+  - name: Remove brick directories
+    file:
+      path: /data/*
+      state: absent
+    ignore_errors: yes
+

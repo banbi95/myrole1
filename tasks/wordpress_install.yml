@@ -1,0 +1,36 @@
+---
+- name: Install and Configure WordPress
+  hosts: 10.0.0.15
+  remote_user: root
+  gather_facts: no
+
+  tasks:
+    - name: Download WordPress
+      get_url:
+        url: https://wordpress.org/latest.tar.gz
+        dest: /tmp/latest.tar.gz
+
+    - name: Extract WordPress archive
+      unarchive:
+        src: /tmp/latest.tar.gz
+        dest: /tmp/
+        remote_src: yes
+        creates: /tmp/wordpress
+
+    - name: Move WordPress to data directory
+      command: mv /tmp/wordpress/* /data/wp/
+      args:
+        creates: /data/wp/
+
+    - name: Set ownership of WordPress files
+      file:
+        path: /data/wp/
+        state: directory
+        recurse: yes
+        owner: apache
+        group: apache
+
+    - name: Remove temporary files
+      file:
+        path: /tmp/latest.tar.gz
+        state: absent

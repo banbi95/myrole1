@@ -1,0 +1,59 @@
+---
+# Play for the MASTER node
+- hosts: 10.0.0.15
+  remote_user: root
+  vars:
+    role: MASTER
+    priority: 255
+
+  tasks:
+    - name: Upload configuration to glusterfs-1
+      template:
+        src: /root/myrole/templates/gluster_keepalived_conf.j2
+        dest: /etc/keepalived/keepalived.conf
+
+    - name: Restart keepalived
+      service:
+        name: keepalived
+        state: started
+        enabled: yes
+
+
+# Play for the first BACKUP node
+- hosts: 10.0.0.16
+  remote_user: root
+  vars:
+    role: BACKUP
+    priority: 200
+
+  tasks:
+    - name: Upload configuration to glusterfs-2
+      template:
+        src: /root/myrole/templates/gluster_keepalived_conf.j2
+        dest: /etc/keepalived/keepalived.conf
+
+    - name: Restart keepalived
+      service:
+        name: keepalived
+        state: started
+        enabled: yes
+
+
+# Play for the second BACKUP node
+- hosts: 10.0.0.17
+  remote_user: root
+  vars:
+    role: BACKUP
+    priority: 100
+
+  tasks:
+    - name: Upload configuration to glusterfs-3
+      template:
+        src: /root/myrole/templates/gluster_keepalived_conf.j2
+        dest: /etc/keepalived/keepalived.conf
+
+    - name: Restart keepalived
+      service:
+        name: keepalived
+        state: started
+        enabled: yes

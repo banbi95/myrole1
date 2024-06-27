@@ -1,0 +1,12 @@
+---
+- name: config apache
+  hosts: webservers
+  remote_user: root
+  gather_facts: no
+
+  tasks:
+   - name: config php 
+     lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      insertafter: AddType application/x-gzip .gz .tgz 
+      line: "	AddType application/x-httpd-php .php"

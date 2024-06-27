@@ -1,0 +1,43 @@
+! Configuration File for keepalived
+
+global_defs {
+router_id {{ ansible_fqdn }}
+}
+
+vrrp_instance LVS { 
+    state {{ role }} 
+    interface ens33 
+    virtual_router_id 53
+    priority {{ priority }} 
+    advert_int 1 
+    authentication {
+        auth_type PASS 
+        auth_pass 1111
+    }
+virtual_ipaddress { 
+    192.168.169.123/24
+}
+}
+
+virtual_server 192.168.169.123 80 {
+delay_loop 6 
+lb_algo rr
+lb_kind NAT
+persistence_timeout 50 protocol TCP
+
+real_server 10.0.0.13 80 {
+weight 1 
+    TCP_CHECK {
+        connect_timeout 3
+        retry 3
+        delay_before_retry 3
+    }
+}
+real_server 10.0.0.14 80 {
+    TCP_CHECK {
+        connect_timeout 3
+        retry 3
+        delay_before_retry 3
+    }
+}
+}

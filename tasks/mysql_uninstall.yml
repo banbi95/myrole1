@@ -1,0 +1,70 @@
+---
+- name: Thoroughly remove MySQL
+  gather_facts: no
+  hosts: webservers
+  become: yes
+  vars:
+    mysql_packages:
+      - mariadb-server
+      - mariadb-libs
+      - mysql*
+    mysql_config_dirs:
+      - /etc/my.cnf.d
+      - /etc/mysql
+      - /etc/my.cnf
+    mysql_data_dirs:
+      - /var/lib/mysql
+      - /var/log/mysql*
+      - /var/run/mysqld
+
+  tasks:
+    - name: Stop MySQL service
+      systemd:
+        name: mysqld
+        state: stopped
+        enabled: no
+
+    - name: Uninstall MySQL packages
+      yum:
+        name: "{{ mysql_packages }}"
+        state: absent
+
+    - name: Remove MySQL configuration files and directories
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop: "{{ mysql_config_dirs }}"
+
+    - name: Clean up MySQL data directories
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop: "{{ mysql_data_dirs }}"
+
+    - name: Remove stale symbolic links
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /var/lib/mysql.sock
+        - /var/lock/subsys/mysqld
+
+    - name: Purge MySQL packages
+      yum:
+        name: "{{ mysql_packages }}"
+        state: absent
+
+    - name: Remove MySQL init script
+      file:
+        path: /etc/init.d/mysqld
+        state: absent
+
+    - name: Remove MySQL system service
+      file:
+        path: /usr/lib/systemd/system/mysqld.service
+        state: absent
+
+    - name: Remove MySQL config file
+      file:
+        path: /etc/sysconfig/mysql
+        state: absent

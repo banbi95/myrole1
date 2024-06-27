@@ -1,0 +1,79 @@
+---
+- hosts: webservers,dbservers
+  remote_user: root
+  gather_facts: no
+
+  tasks:
+    - name: Create mount brick1
+      file:
+        path: /mnt/point1
+        state: directory
+
+    - name: Create mount brick2
+      file:
+        path: /mnt/point2
+        state: directory
+
+    - name: Install parted
+      yum:
+        name: parted
+        state: present
+
+    - name: Create part1
+      parted:
+        device: /dev/sdb
+        number: 1
+        part_end: 5GiB
+        state: present
+
+    - name: finish remaing jobs
+      tags: update
+      block: 
+            - name: Create part2
+              parted:
+                device: /dev/sdb
+                number: 2
+                part_start: 5GiB
+                #part_end: 10GiB 
+                state: present
+
+            - name: Install xfsprogs
+              yum:
+                name: xfsprogs
+                state: present
+
+            - name: Format sdb1
+              filesystem:
+                dev: /dev/sdb1
+                fstype: xfs
+                force: yes
+
+            - name: Format sdb2
+              filesystem:
+                dev: /dev/sdb2
+                fstype: xfs
+                force: yes
+
+            - name: Mount vdb1
+              mount:
+                src: /dev/sdb1
+                path: /mnt/point1
+                fstype: xfs
+                state: mounted
+
+            - name: Mount vdb2
+              mount:
+                src: /dev/sdb2
+                path: /mnt/point2
+                fstype: xfs
+                state: mounted
+
+            - name: Config hosts
+              lineinfile:
+                path: /etc/hosts
+                line: "{{ item }}"
+                state: present
+              with_items:
+                - '10.0.0.15 Gluster-01'
+                - '10.0.0.16 Gluster-02'
+                - '10.0.0.17 Gluster-03'

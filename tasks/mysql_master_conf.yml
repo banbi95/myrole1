@@ -1,0 +1,38 @@
+---
+- hosts: 10.0.0.15
+  remote_user: root 
+  gather_facts: no
+  vars:
+   mysql_host: 10.0.0.15
+   mysql_pass: 12345678
+
+  tasks:
+  - name: create user for replication
+    command: mysql -uroot -p{{mysql_pass}} -e "create user slave identified with caching_sha2_password by '{{mysql_pass}}' ";
+
+
+  - name: grant replication for slave
+    command: mysql -uroot -p"{{mysql_pass}}" -e "GRANT REPLICATION SLAVE ON *.* to 'slave'@'%';"
+
+  - name: enable privileges 
+    tags: master
+    command: mysql -uroot -p"{{mysql_pass}}" -e "FLUSH PRIVILEGES;"
+
+  - name: config master lineinfile
+    lineinfile:
+     path: /etc/my.cnf 
+     insertafter: '[mysqld]'
+     line: "{{ item }}" 
+     state: present
+    with_items:   # it shoule be aligned with lineinfile
+      -  server-id=1
+      -  log-bin=/var/lib/mysql/binlog
+      -  default_authentication_plugin=caching_sha2_password
+      -  'log_timestamps=SYSTEM'
+    notify: restart_mysqld
+
+  handlers:
+   - name: restart_mysqld 
+     service:
+       name: mysqld
+       state: restarted  

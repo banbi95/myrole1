@@ -1,0 +1,19 @@
+---
+# Define separate plays for each host group
+- name: Configure Nginx
+  hosts: nginx
+  remote_user: root
+  gather_facts: no
+
+  tasks:
+  - name: Install Nginx
+    yum:
+      name: nginx
+      state: present
+
+  - name: Enable and Start Nginx
+    service:
+      name: nginx
+      state: started
+      enabled: yes
+

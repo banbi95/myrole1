@@ -1,0 +1,17 @@
+---
+- name: Install and Start MySQL
+  hosts: webservers
+  remote_user: root
+  gather_facts: no
+
+  tasks:
+  - name: Install MySQL
+    yum:
+      name: mysql-server
+      state: present
+
+  - name: Enable and Start MySQL Service
+    service:
+      name: mysqld
+      state: started
+      enabled: yes

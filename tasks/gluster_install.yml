@@ -1,0 +1,17 @@
+---
+- name: Configure GlusterFS Server
+  hosts: webservers,dbservers
+  remote_user: root
+  gather_facts: no
+
+  tasks:
+  - name: Install GlusterFS Server
+    yum:
+      name: glusterfs-server
+      state: present
+
+  - name: Enable and Start GlusterFS Server Service
+    service:
+      name: glusterd
+      state: started
+      enabled: yes

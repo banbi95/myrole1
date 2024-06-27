@@ -1,0 +1,51 @@
+---
+- hosts: webservers
+  remote_user: root
+  gather_facts: no
+  tasks:
+  # - name: Set Password for Root
+  #   mysql_user:
+  #     name: root
+  #     host: localhost
+  #     password: '12345678'
+  #     login_user: root
+  #     login_password: '12345678'  # Replace with the current root password
+    - name: set initial password for root
+      command: mysql -e "alter user root@'localhost' identified by '12345678';"
+
+    - name: make mysql listen on 10.0.0.x:3306
+      tags: update
+      lineinfile:
+        path: /etc/my.cnf 
+        insertafter: '[mysqld]'
+        line: bind-address = {{ hostvars[inventory_hostname]['ip'] }} 
+
+    - name: restart mysqld 
+      tags: update
+      service:
+        name:  mysqld
+        state:  restarted
+
+
+
+  # -name :  Allow Users from Specific Subnet to Log In 
+  # use cmd to achieve it 
+
+  # - name: Allow Users from Specific Subnet to Log In
+  #   tags: update
+  #   block:
+  #   - name: grant Privileges
+  #     mysql_user:
+  #       name: root
+  #       host: '10.0.0.%'
+  #       password: '12345678'
+  #       priv: '*.*:ALL'
+  #       state: present
+  #       login_user: root
+  #       login_password: '12345678'  # Use the same password set for root@localhost
+
+  #   - name: Flush Privileges
+  #     mysql_db:
+  #       login_user: root
+  #       login_password: '12345678'  # Again, use the root password
+  #       flush_privileges: yes
